@@ -36,6 +36,7 @@ import java.util.stream.Stream;
 @Slf4j
 public abstract class DockerClientProviderStrategy {
 
+    public static final int TIMEOUT = 30;
     @Getter(lazy = true)
     private final DockerClient dockerClient = getClientForConfig(getTransportConfig());
 
@@ -81,15 +82,13 @@ public abstract class DockerClientProviderStrategy {
     @Deprecated
     public DockerClient getClient() {
         DockerClient dockerClient = getDockerClient();
+        log.debug("Pinging docker daemon for {}sec ...", TIMEOUT);
         try {
-            Unreliables.retryUntilSuccess(30, TimeUnit.SECONDS, () -> {
-                return PING_RATE_LIMITER.getWhenReady(() -> {
-                    log.debug("Pinging docker daemon...");
-                    dockerClient.pingCmd().exec();
-                    log.debug("Pinged");
-                    return true;
-                });
-            });
+            Unreliables.retryUntilSuccess(TIMEOUT, TimeUnit.SECONDS, () -> PING_RATE_LIMITER.getWhenReady(() -> {
+                dockerClient.pingCmd().exec();
+                log.debug("Pinged");
+                return true;
+            }));
         } catch (TimeoutException e) {
             IOUtils.closeQuietly(dockerClient);
             throw e;
@@ -143,13 +142,10 @@ public abstract class DockerClientProviderStrategy {
                         DockerClient dockerClient = strategy.getDockerClient();
 
                         Info info;
+                        log.debug("Pinging docker daemon for {}sec ...", TIMEOUT);
                         try {
-                            info = Unreliables.retryUntilSuccess(30, TimeUnit.SECONDS, () -> {
-                                return strategy.PING_RATE_LIMITER.getWhenReady(() -> {
-                                    log.debug("Pinging docker daemon...");
-                                    return dockerClient.infoCmd().exec();
-                                });
-                            });
+                            info = Unreliables.retryUntilSuccess(TIMEOUT, TimeUnit.SECONDS,
+                                () -> strategy.PING_RATE_LIMITER.getWhenReady(() -> dockerClient.infoCmd().exec()));
                         } catch (TimeoutException e) {
                             IOUtils.closeQuietly(dockerClient);
                             throw e;
