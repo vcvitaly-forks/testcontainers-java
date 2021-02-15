@@ -8,6 +8,6 @@ repositories {
 
 dependencies {
     testImplementation 'org.testcontainers:testcontainers'
-    testImplementation 'junit:junit:4.13'
+    testImplementation 'junit:junit:4.13.2'
     testCompileOnly 'org.jetbrains:annotations:20.0.0'
 }
