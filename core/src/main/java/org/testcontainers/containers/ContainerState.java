@@ -8,19 +8,6 @@ import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.api.model.Ports;
 import com.google.common.base.Preconditions;
-import lombok.SneakyThrows;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-import org.apache.commons.compress.utils.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testcontainers.DockerClientFactory;
-import org.testcontainers.containers.output.OutputFrame;
-import org.testcontainers.images.builder.Transferable;
-import org.testcontainers.utility.LogUtils;
-import org.testcontainers.utility.MountableFile;
-import org.testcontainers.utility.ThrowingFunction;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -34,6 +21,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.SneakyThrows;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.utils.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testcontainers.DockerClientFactory;
+import org.testcontainers.containers.output.OutputFrame;
+import org.testcontainers.images.builder.Transferable;
+import org.testcontainers.utility.LogUtils;
+import org.testcontainers.utility.MountableFile;
+import org.testcontainers.utility.ThrowingFunction;
 
 public interface ContainerState {
 
@@ -229,7 +228,7 @@ public interface ContainerState {
      * @see ExecInContainerPattern#execInContainer(com.github.dockerjava.api.command.InspectContainerResponse, Charset, String...)
      */
     default Container.ExecResult execInContainer(Charset outputCharset, String... command) throws UnsupportedOperationException, IOException, InterruptedException {
-        return ExecInContainerPattern.execInContainer(getContainerInfo(), outputCharset, command);
+        return ExecInContainerPattern.instance().execInContainer(getContainerInfo(), outputCharset, command);
     }
 
     /**

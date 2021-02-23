@@ -1,14 +1,13 @@
 package org.testcontainers.containers.wait.internal;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.testcontainers.containers.Container.ExecResult;
 import org.testcontainers.containers.ExecInContainerPattern;
 import org.testcontainers.containers.wait.strategy.WaitStrategyTarget;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Set;
 
 import static java.lang.String.format;
 
@@ -27,23 +26,34 @@ public class InternalCommandPortListeningCheck implements java.util.concurrent.C
         StringBuilder command = new StringBuilder("true");
 
         for (int internalPort : internalPorts) {
-            command.append(" && ");
-            command.append(" (");
-            command.append(format("cat /proc/net/tcp* | awk '{print $2}' | grep -i ':0*%x'", internalPort));
-            command.append(" || ");
-            command.append(format("nc -vz -w 1 localhost %d", internalPort));
-            command.append(" || ");
-            command.append(format("/bin/bash -c '</dev/tcp/localhost/%d'", internalPort));
-            command.append(")");
+            command
+                .append(" && ")
+                .append(" (")
+                .append(format("cat /proc/net/tcp* | awk '{print $2}' | grep -i ':0*%x'", internalPort))
+                .append(" || ")
+                .append(format("nc -vz -w 1 localhost %d", internalPort))
+                .append(" || ")
+                .append(format("/bin/bash -c '</dev/tcp/localhost/%d'", internalPort))
+                .append(")");
         }
 
         Instant before = Instant.now();
+        ExecResult result;
         try {
-            ExecResult result = ExecInContainerPattern.execInContainer(waitStrategyTarget.getContainerInfo(), "/bin/sh", "-c", command.toString());
-            log.trace("Check for {} took {}. Result code '{}', stdout message: '{}'", internalPorts, Duration.between(before, Instant.now()), result.getExitCode(), result.getStdout());
-            return result.getExitCode() == 0;
+            result = ExecInContainerPattern.instance().execInContainer(waitStrategyTarget.getContainerInfo(), "/bin/sh", "-c", command.toString());
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
+
+        final String errorMessage = format("Check for %s took %s. Result code '%d', stdout message: '%s'",
+            internalPorts, Duration.between(before, Instant.now()),
+            result.getExitCode(), result.getStdout()
+        );
+        log.trace(errorMessage);
+        if (result.getExitCode() != 0) {
+            throw new IllegalStateException(errorMessage);
+        }
+
+        return true;
     }
 }

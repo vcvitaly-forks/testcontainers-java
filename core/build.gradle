@@ -221,6 +221,8 @@ dependencies {
     testCompile 'org.assertj:assertj-core:3.18.1'
     testCompile project(':test-support')
 
+    testCompile ('org.mockito:mockito-inline:3.6.28')
+
     jarFileTestCompileOnly "org.projectlombok:lombok:${lombok.version}"
     jarFileTestAnnotationProcessor "org.projectlombok:lombok:${lombok.version}"
     jarFileTestCompile 'junit:junit:4.12'

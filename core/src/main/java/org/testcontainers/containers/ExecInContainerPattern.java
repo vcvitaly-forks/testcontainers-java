@@ -4,7 +4,8 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.ExecCreateCmdResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.exception.DockerException;
-import lombok.experimental.UtilityClass;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import lombok.extern.slf4j.Slf4j;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.output.FrameConsumerResultCallback;
@@ -12,15 +13,33 @@ import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.output.ToStringConsumer;
 import org.testcontainers.utility.TestEnvironment;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-
 /**
  * Provides utility methods for executing commands in containers
  */
-@UtilityClass
 @Slf4j
 public class ExecInContainerPattern {
+
+    private static ExecInContainerPattern INSTANCE;
+
+    private ExecInContainerPattern() {
+    }
+
+    public static ExecInContainerPattern instance() {
+        if (INSTANCE == null) {
+            synchronized (ExecInContainerPattern.class) {
+                if (INSTANCE == null) {
+                    INSTANCE = new ExecInContainerPattern();
+                }
+            }
+        }
+
+        return INSTANCE;
+    }
+
+    public static void setInstance(ExecInContainerPattern INSTANCE) {
+        ExecInContainerPattern.INSTANCE = INSTANCE;
+        System.out.println();
+    }
 
     /**
      * Run a command inside a running container, as though using "docker exec", and interpreting
